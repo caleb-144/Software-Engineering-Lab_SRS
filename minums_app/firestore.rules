@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function me() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function isManager() { return signedIn() && me().role == 'manager' && me().status == 'approved'; }
+    function isStaff() { return signedIn() && me().role == 'staff' && me().status == 'approved'; }
+    function isCrew() { return isManager() || isStaff(); }
+    function onlyKeys(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    // ---- Profiles: read your own; the manager reads all (staff list, approvals).
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isManager());
+      // Sign-up: create only YOUR profile, as customer (approved) or staff (pending).
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.role in ['customer', 'staff']
+        && request.resource.data.status == (request.resource.data.role == 'staff' ? 'pending' : 'approved');
+      allow update: if isManager()
+        // you may edit your own profile details, nothing else (not role or status)
+        || (signedIn() && request.auth.uid == uid
+            && onlyKeys(['name', 'phone', 'birthday', 'birthdayPublic', 'avatar']));
+      allow delete: if false;
+    }
+
+    // ---- Menu + stock: everyone (even guests) can read.
+    match /menu/{id} {
+      allow read: if true;
+      allow create, delete: if isManager();
+      allow update: if isManager()
+        // staff: restock / stock out / sold-out switch
+        || (isCrew() && onlyKeys(['stock', 'available', 'sold']) && request.resource.data.stock >= 0)
+        // customers: only the stock + sold counters, as part of placing or cancelling an order
+        || (signedIn() && onlyKeys(['stock', 'sold'])
+            && request.resource.data.stock >= 0
+            && request.resource.data.stock <= resource.data.stock + 20);
+    }
+
+    // ---- Stock history: staff and manager read; anyone signed in logs a movement.
+    match /stockTxns/{id} {
+      allow read: if isCrew();
+      allow create: if signedIn();
+      allow update, delete: if false;
+    }
+
+    // ---- Orders: customers see their own; staff and manager see all.
+    match /orders/{id} {
+      allow read: if isCrew() || (signedIn() && resource.data.customerId == request.auth.uid);
+      allow create: if signedIn() && request.resource.data.customerId == request.auth.uid
+        && request.resource.data.status == 'pending' && request.resource.data.paid == false;
+      allow update: if isCrew()
+        || (signedIn() && resource.data.customerId == request.auth.uid
+            && resource.data.status == 'pending'
+            && onlyKeys(['status']) && request.resource.data.status == 'cancelled');
+      allow delete: if false;
+    }
+
+    // ---- Order number counter.
+    match /meta/counters {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.orderSeq == 1001;
+      allow update: if signedIn() && request.resource.data.orderSeq == resource.data.orderSeq + 1;
+    }
+
+    // ---- Reviews: public to read (they feed Hot Selling); you write only your own.
+    match /reviews/{id} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid
+        && request.resource.data.rating >= 1 && request.resource.data.rating <= 5;
+      allow update, delete: if false;
+    }
+
+    // ---- Messages between a customer and the manager.
+    match /messages/{id} {
+      allow read: if isManager() || (signedIn() && resource.data.customerId == request.auth.uid);
+      allow create: if (signedIn() && request.resource.data.customerId == request.auth.uid
+                        && request.resource.data.fromManager == false)
+                    || isManager();
+      allow update, delete: if false;
+    }
+
+    // ---- Campus events: public to read, manager edits.
+    match /events/{id} {
+      allow read: if true;
+      allow write: if isManager();
+    }
+
+    // ---- Check-ins: staff write their own; the manager reads everything.
+    match /attendance/{id} {
+      allow read: if isManager() || (isStaff() && resource.data.staffId == request.auth.uid);
+      allow create: if isStaff() && request.resource.data.staffId == request.auth.uid;
+      allow update: if isStaff() && resource.data.staffId == request.auth.uid
+        && request.resource.data.staffId == resource.data.staffId;
+      allow delete: if false;
+    }
+
+    match /{document=**} { allow read, write: if false; }
+  }
+}
