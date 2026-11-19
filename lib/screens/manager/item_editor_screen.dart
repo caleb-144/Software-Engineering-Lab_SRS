@@ -31,7 +31,7 @@ class _ItemEditorScreenState extends State<ItemEditorScreen> {
   late final TextEditingController _desc =
       TextEditingController(text: widget.item?.description ?? '');
   late final TextEditingController _stock =
-      TextEditingController(text: '${widget.item?.stock ?? kStartingStock}');
+      TextEditingController(text: '${widget.item?.stock ?? kDefaultStock}');
   late final TextEditingController _image =
       TextEditingController(text: widget.item?.image ?? '');
   late String _category = widget.item?.category ?? kCategories.first;

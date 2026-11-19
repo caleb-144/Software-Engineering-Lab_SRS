@@ -108,8 +108,8 @@ because every customer's phone downloads the photos with the menu.
    to see just those, plus the category chips and search.
 2. Tap an item -> choose +10 / +20 / +50 (or type a number) -> Confirm. It saves to Firestore and to **Stock history**
    (clock icon) with who did it and when.
-3. Items you already had in Firestore keep their old numbers. New items start at 10 (editable when you add the item).
-   There is no minimum and nothing is topped up automatically; an item is marked **Low stock** at 5 or fewer.
+3. Items you already had in Firestore keep their old numbers. To bring everything up to 10 in one go,
+   tap the box icon at the top right of Inventory -> **Top up**. Items below 10 are raised to 10 and logged.
 4. Petrus's **Dashboard** also lists the low-stock items.
 5. In the Firebase console you can watch it live: **Firestore -> Data -> menu -> (item)** shows `stock` and `sold`;
    **stockTxns** is the history.

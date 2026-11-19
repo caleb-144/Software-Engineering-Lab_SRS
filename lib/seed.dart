@@ -19,11 +19,10 @@ const List<String> kCategories = [
 ];
 
 /// Default stock for a new menu item and the amount the restock dialog starts from (was 5).
-/// Opening stock of a new item only. It is NOT a minimum: stock is never topped up automatically.
-const int kStartingStock = 10;
+const int kDefaultStock = 10;
 
 /// Shown at the bottom of the Account page.
-const String kAppVersion = '1.10.2';
+const String kAppVersion = '1.9.0';
 
 const String kServicesInfo =
     'Services: pickup and dine-in. Payment is made at the counter (cash or QR). '
@@ -57,7 +56,7 @@ const List<String> kAiPrompts = ['Recommend something sweet', "What's good under
 const String kManagerEmail = 'petrus@minums.com';
 
 /// THE MINUM'S 2026 menu (from "THE MINUM'S - 2026 LATEST MENU" PDF), with the customisation
-/// rules the owner asked for. Every item starts with [kStartingStock] units.
+/// rules the owner asked for. Every item starts with [kDefaultStock] units.
 /// Photos are added in the app (Menu & stock -> item).
 List<MenuItem> seedMenu() {
   MenuItem m(String id, String name, String cat, double price, String desc,
@@ -69,7 +68,7 @@ List<MenuItem> seedMenu() {
           price: price,
           description: desc,
           groups: groups,
-          stock: kStartingStock);
+          stock: kDefaultStock);
   return [
     m('bv01', 'Milo', 'Beverages', 3.5, '', _beverage(hot: true)),
     m('bv02', 'Milo Dinasour', 'Beverages', 5.0, '', _beverage(hot: false)),

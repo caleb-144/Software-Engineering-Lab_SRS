@@ -43,7 +43,6 @@ class _CartScreenState extends State<CartScreen> {
       toast(context, res.error!);
       return;
     }
-    if (s.orderDiag != null) toast(context, s.orderDiag!);
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(

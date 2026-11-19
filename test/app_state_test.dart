@@ -30,7 +30,7 @@ void main() {
 
   test('every menu item starts at the default stock of 10', () async {
     final s = await _make();
-    expect(kStartingStock, 10);
+    expect(kDefaultStock, 10);
     expect(s.menu.length, 126);
     expect(s.menu.every((m) => m.stock == 10), true);
   });

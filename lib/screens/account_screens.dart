@@ -377,12 +377,11 @@ class SettingsScreen extends StatelessWidget {
             ),
             const Divider(),
           ],
-          ListTile(
+          const ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.info_outline, color: Brand.primary),
-            title: const Text("THE MINUM'S", style: TextStyle(fontWeight: FontWeight.w600)),
-            subtitle: Text('Version $kAppVersion\nFirebase project: ${s.projectId}'),
-            isThreeLine: true,
+            leading: Icon(Icons.info_outline, color: Brand.primary),
+            title: Text("THE MINUM'S", style: TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: Text('Version $kAppVersion'),
           ),
         ],
       ),

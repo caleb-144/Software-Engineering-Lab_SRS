@@ -606,6 +606,37 @@ class AppState extends ChangeNotifier {
     _fire(_db.collection('menu').doc(id).update({'available': value}));
   }
 
+  /// Brings every item that has fewer than [kDefaultStock] (10) units up to 10 and logs it in the
+  /// stock history. Returns how many items were topped up.
+  int topUpToDefault() {
+    final u = user;
+    if (u == null || u.role == Role.customer) return 0;
+    final batch = _db.batch();
+    var n = 0;
+    for (final m in menu) {
+      if (m.stock >= kDefaultStock) continue;
+      final add = kDefaultStock - m.stock;
+      batch.update(_db.collection('menu').doc(m.id), {'stock': FieldValue.increment(add)});
+      final t = StockTxn(
+        id: _newId('t'),
+        itemId: m.id,
+        itemName: m.name,
+        isIn: true,
+        qty: add,
+        reason: 'Top up to $kDefaultStock',
+        byName: u.name,
+        at: DateTime.now(),
+      );
+      batch.set(_db.collection('stockTxns').doc(t.id), t.toJson());
+      m.stock = kDefaultStock;
+      n++;
+    }
+    if (n == 0) return 0;
+    notifyListeners();
+    _fire(batch.commit());
+    return n;
+  }
+
   /// Manager: brings the database in line with THE MINUM'S 2026 menu.
   ///  * adds items that are missing (stock starts at 10),
   ///  * updates name, category, price and options of items that already exist, but KEEPS their stock,
@@ -801,8 +832,6 @@ class AppState extends ChangeNotifier {
     }
 
     final discount = cartDiscount;
-    final before = <String, int>{};
-    orderDiag = null;
     final orderRef = _db.collection('orders').doc();
     final counterRef = _db.collection('meta').doc('counters');
     final now = DateTime.now();
@@ -821,7 +850,6 @@ class AppState extends ChangeNotifier {
             throw _OrderProblem('${itemById(e.key)?.name ?? 'An item'} is no longer available');
           }
           final stock = (data['stock'] as num?)?.toInt() ?? 0;
-          before[e.key] = stock;
           if (stock < e.value) {
             throw _OrderProblem(stock <= 0
                 ? '${data['name']} just sold out'
@@ -868,7 +896,6 @@ class AppState extends ChangeNotifier {
         return next;
       }).timeout(const Duration(seconds: 15));
 
-      await _verifyStock(need, before);
       cart.clear();
       final order = Order(
         id: orderRef.id,
@@ -896,41 +923,6 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       debugPrint('Order failed: $e');
       return (order: null, error: 'Could not place the order. Please try again.');
-    }
-  }
-
-  /// Message set when the database stock does not match what the order should have produced.
-  String? orderDiag;
-
-  /// The Firebase project this app is talking to (must match the one open in the console).
-  String get projectId {
-    try {
-      return _db.app.options.projectId;
-    } catch (_) {
-      return '-';
-    }
-  }
-
-  /// Reads the ordered items back from the server and checks the stock really went down.
-  Future<void> _verifyStock(Map<String, int> need, Map<String, int> before) async {
-    try {
-      for (final e in need.entries) {
-        final d = await _db
-            .collection('menu')
-            .doc(e.key)
-            .get(const GetOptions(source: Source.server))
-            .timeout(const Duration(seconds: 6));
-        final now = (d.data()?['stock'] as num?)?.toInt();
-        final want = (before[e.key] ?? 0) - e.value;
-        debugPrint('Stock check ${e.key}: before=${before[e.key]} ordered=${e.value} '
-            'database=$now project=$projectId');
-        if (now != want) {
-          orderDiag = 'Stock check: ${itemById(e.key)?.name ?? e.key} should be $want '
-              'but the database says $now (project $projectId).';
-        }
-      }
-    } catch (e) {
-      debugPrint('Stock check skipped: $e');
     }
   }
 

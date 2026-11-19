@@ -52,7 +52,7 @@ class _InventoryTabState extends State<InventoryTab> {
                 final ok = await confirmDialog(
                   context,
                   "Load THE MINUM'S menu?",
-                  'Adds the items that are missing (stock starts at $kStartingStock) and updates the '
+                  'Adds the items that are missing (stock starts at $kDefaultStock) and updates the '
                   'names, prices and options (size, hot/cold, add-ons) of the others. Stock, photos '
                   'and your own items are kept. Old starter items that are not on the menu are removed.',
                   confirm: 'Load menu',
@@ -65,6 +65,24 @@ class _InventoryTabState extends State<InventoryTab> {
                 }
               },
             ),
+          IconButton(
+            tooltip: 'Top up low items to $kDefaultStock',
+            icon: const Icon(Icons.inventory_2_outlined),
+            onPressed: () async {
+              final st = context.read<AppState>();
+              final ok = await confirmDialog(
+                context,
+                'Top up to $kDefaultStock?',
+                'Every item with fewer than $kDefaultStock units is topped up to $kDefaultStock and the change is saved in Stock history.',
+                confirm: 'Top up',
+              );
+              if (!ok) return;
+              final n = st.topUpToDefault();
+              if (context.mounted) {
+                toast(context, n == 0 ? 'Nothing to top up' : '$n item${n == 1 ? '' : 's'} topped up to $kDefaultStock');
+              }
+            },
+          ),
           IconButton(
             tooltip: 'Stock history',
             icon: const Icon(Icons.history),
@@ -243,7 +261,7 @@ class _StockSheet extends StatefulWidget {
 
 class _StockSheetState extends State<_StockSheet> {
   bool _isIn = true;
-  int _qty = 5; // restock quantity starts at 5; change it before confirming
+  int _qty = kDefaultStock; // restock starts from 10 units (was 5)
   final _reason = TextEditingController();
 
   @override
