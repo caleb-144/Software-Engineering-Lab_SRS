@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "276279870651",
+    "project_id": "the-minum-s",
+    "storage_bucket": "the-minum-s.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:276279870651:android:d5295f9fe3bcbcba64959e",
+        "android_client_info": {
+          "package_name": "com.example.minums_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDs1IHSnl66c4DKJ_suToWZE-YV6_273Ic"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
