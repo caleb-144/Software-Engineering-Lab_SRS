@@ -11,7 +11,7 @@
 /// Anything inside an app can be extracted by a determined person, so ALWAYS restrict the key to
 /// your Android app in Google Cloud (guide, Part 3) and keep the project on the free tier.
 const String kGeminiApiKey =
-    String.fromEnvironment('GEMINI_API_KEY', defaultValue: 'AQ.Ab8RN6K7ITBL6hvdOU8Rj7CPqVOLtWuSLyHSzGxEPhSTMHOr6w');
+    String.fromEnvironment('GEMINI_API_KEY', defaultValue: 'AIzaSyBbQ5K3N2YV2vK5qXK4IcGn9-eQPOYwjSg');// there is an AI limit respond per day (10)
 
 /// Model name. If it stops working (Google retires models), choose another Flash / Flash-Lite
 /// name in AI Studio and change it here, or run with --dart-define=GEMINI_MODEL=name.
