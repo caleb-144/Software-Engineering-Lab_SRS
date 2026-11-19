@@ -7,4 +7,4 @@
 /// These two values are NOT secrets. NEVER put the Cloudinary API Secret in the app.
 /// While they still say YOUR_..., the app saves picked photos inside Firestore instead.
 const String kCloudinaryCloudName = 'd0qzjtgv';
-const String kCloudinaryUploadPreset = 'minums_app';
+const String kCloudinaryUploadPreset = 'minums_menu';
